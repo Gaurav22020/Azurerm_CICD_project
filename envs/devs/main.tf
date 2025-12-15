@@ -22,3 +22,16 @@ module "acr" {
   depends_on          = [module.resource_group]
 
 }
+module "aks" {
+  source              = "../../modules/aks"
+  cluster_name        = "dev-aks"
+  location            = module.resource_group.location
+  resource_group_name = module.resource_group.resource_group_name
+  subnet_id           = module.virtual_network.subnet_id
+}
+
+resource "azurerm_role_assignment" "aks_acr_pull" {
+  scope                = module.acr.acr_id
+  role_definition_name = "AcrPull"
+  principal_id         = module.aks.kubelet_identity_object_id
+}
